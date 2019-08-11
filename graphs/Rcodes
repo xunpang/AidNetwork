@@ -1,0 +1,362 @@
+library(igraph)
+library(network)
+library(reshape)
+library(dplyr)
+
+
+fulldata <- read.csv("~AidDataCoreDonorRecipientYear_ResearchRelease_Level1_v3.1.csv")
+rlist <- read.csv("~Network Project/abbreviation_recipient.csv")
+dlist <- read.csv("~Network Project/abbreviation_donor.csv")
+fulldata <- merge(fulldata, rlist, by.x = "recipient", by.y = "recipient", all.x = TRUE)
+fulldata <- merge(fulldata, dlist, by.x = "donor", by.y = "donor", all.x = TRUE)
+fulldata <- fulldata[fulldata$category == 1,]
+fulldata$drole <- 0
+
+hist(log(fulldata[fulldata$year == 2000,]$commitment_amount_usd_constant_sum))
+quantile(fulldata[fulldata$year == 2000,]$commitment_amount_usd_constant_sum)
+
+#######inward and outward aid#########
+inandoutward <- data.frame(countryname = 0,outward = 0, inward = 0, year = 0)
+countries <- data.frame(countryname = 0, outward = 0, inward = 0, year = 0, type = 0)
+for (i in 1947:2013) {
+  yearlydata <- fulldata[fulldata$year == i,]
+  ds <- aggregate(yearlydata$commitment_amount_usd_constant_sum, by = list(donor = yearlydata$donor_abbr), sum)
+  rs <- aggregate(yearlydata$commitment_amount_usd_constant_sum, by = list(recipient = yearlydata$recipient_abbr), sum)
+  bis <- merge(ds, rs, by.x = "donor", by.y = "recipient")
+  ds$inward <- 0
+  ds$year <- i
+  colnames(ds) <- c("countryname", "outward", "inward", "year")
+  rs$inward <- rs$x
+  rs$x <- 0
+  rs$year <- i
+  colnames(rs) <- c("countryname", "outward", "inward", "year")
+  
+  if (nrow(bis) != 0) {
+    bis$year <- i
+    colnames(bis) <- c("countryname", "outward", "inward", "year")
+    inandoutward <- rbind(inandoutward, bis)
+    for (j in 1:nrow(bis)) {
+      ds <- ds[as.character(ds$countryname) != as.character(bis$countryname[j]),] 
+      rs <- rs[as.character(rs$countryname) != as.character(bis$countryname[j]),] 
+    }
+    ds$year <- i
+    ds$type <- 1
+    rs$type <- 3
+    bis$type <- 2
+  }
+  ds$type <- 1
+  rs$type <- 3
+  countries <- rbind(countries, ds, rs, bis)
+}
+countries <- countries[-1,]
+countries$category <- 1
+nonstatelist <- unique(fulldata[fulldata$dcategory == 0,]$donor_abbr)
+nonstatelist <- as.character(nonstatelist)
+for (i in 1:length(nonstatelist)) {
+  countries[as.character(countries$countryname) == nonstatelist[i], ]$category <- 0
+}
+
+countries$ratio <- 0
+countries[countries$type == 2,]$ratio <- countries[countries$type == 2,]$outward/countries[countries$type == 2,]$inward
+countries[countries$ratio < 2 & countries$ratio > 1/2,]$type <- 9
+
+
+
+
+#########graph based on top 3 recipients in year i#######
+for (i in 1947:2013) {
+yearlydata <- fulldata[fulldata$year == i,]
+yearlydata <- arrange(yearlydata, donor_abbr, desc(commitment_amount_usd_constant_sum))
+dlist <- unique(yearlydata$donor_abbr)
+yearlydata$top3 <- 0
+
+for (j in 1:length(dlist)) {
+  if (nrow(yearlydata[yearlydata$donor_abbr == dlist[j],]) < 3) {
+    yearlydata[yearlydata$donor_abbr == dlist[j],]$top3 <- 1
+  } else {
+    yearlydata[yearlydata$donor_abbr == dlist[j],]$top3[1:3] <- 1
+  }
+}
+selecteddata <- yearlydata[yearlydata$top3 == 1, ]
+g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+bipartite.mapping(g)
+
+vlist <- as.data.frame(V(g)$name)
+vlist$order <- 1:nrow(vlist)
+colnames(vlist) <- c("countryname", "order")
+vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+vattributes <- vattributes[order(vattributes$order), ]
+vattributes$color <- NA
+vattributes$size <- NA
+vattributes$shape <- NA
+vattributes[which(vattributes$type == 1),]$color <- "cyan"
+if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+}
+if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+}
+vattributes[which(vattributes$type == 3),]$color <- "orangered"
+vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+vattributes[which(vattributes$category == 1),]$shape <- "circle"
+vattributes[which(vattributes$category == 0),]$shape <- "square"
+
+E(g)$arrow.size <- .1
+E(g)$width <- .2
+V(g)$label.dist <- .6
+V(g)$label.cex <- .5
+V(g)$color <- vattributes$color
+V(g)$size <- log10(sqrt(vattributes$size))-2
+V(g)$size[V(g)$size < 1] <- 1
+V(g)$shape <- vattributes$shape
+pdf(paste("G:/Network Project/graphs/T3R_", i, ".pdf", sep = ""))
+plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .5, main = paste("Top 3 recipients,", i,  sep = ""))
+dev.off()
+}
+#########graph based on top 3 donors in year i#######
+for (i in 1947:2013) {
+  
+
+yearlydata <- fulldata[fulldata$year == i,]
+yearlydata <- arrange(yearlydata, recipient_abbr, desc(commitment_amount_usd_constant_sum))
+rlist <- unique(yearlydata$recipient_abbr)
+yearlydata$top3 <- 0
+
+for (j in 1:length(rlist)) {
+  if (nrow(yearlydata[yearlydata$recipient_abbr == rlist[j],]) < 3) {
+    yearlydata[as.character(yearlydata$recipient_abbr) == as.character(rlist[j]),]$top3 <- 1
+  } else {
+    yearlydata[as.character(yearlydata$recipient_abbr) == as.character(rlist[j]),]$top3[1:3] <- 1
+  }
+}
+selecteddata <- yearlydata[yearlydata$top3 == 1, ]
+g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+bipartite.mapping(g)
+
+vlist <- as.data.frame(V(g)$name)
+vlist$order <- 1:nrow(vlist)
+colnames(vlist) <- c("countryname", "order")
+vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+vattributes <- vattributes[order(vattributes$order), ]
+vattributes$color <- NA
+vattributes$size <- NA
+vattributes$shape <- NA
+vattributes[which(vattributes$type == 1),]$color <- "cyan"
+if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+  vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+}
+if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+  vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+}
+vattributes[which(vattributes$type == 3),]$color <- "orangered"
+vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+vattributes[which(vattributes$category == 1),]$shape <- "circle"
+vattributes[which(vattributes$category == 0),]$shape <- "square"
+
+E(g)$arrow.size <- .1
+E(g)$width <- .2
+V(g)$label.dist <- .4
+V(g)$label.cex <- .5
+V(g)$color <- vattributes$color
+V(g)$size <- log10(sqrt(vattributes$size))-2
+V(g)$size[V(g)$size < 1] <- 1
+V(g)$shape <- vattributes$shape
+pdf(paste("G:/Network Project/graphs/T3D_", i, ".pdf", sep = ""))
+plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .3, main = paste("Top 3 donors,", i, sep = ""))
+dev.off()
+}
+
+#########graph top ties in year i#######
+for (i in 1947:2013) {
+  
+
+yearlydata <- fulldata[fulldata$year == i,]
+yearlydata <- arrange(yearlydata, recipient_abbr, desc(commitment_amount_usd_constant_sum))
+thresholds <- quantile(yearlydata$commitment_amount_usd_constant_sum, probs = seq(0,1,.1))
+threshold <- thresholds[10]
+selecteddata <- yearlydata[yearlydata$commitment_amount_usd_constant_sum > threshold, ]
+g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+bipartite.mapping(g)
+
+vlist <- as.data.frame(V(g)$name)
+vlist$order <- 1:nrow(vlist)
+colnames(vlist) <- c("countryname", "order")
+vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+vattributes <- vattributes[order(vattributes$order), ]
+vattributes$color <- NA
+vattributes$size <- NA
+vattributes$shape <- NA
+vattributes[which(vattributes$type == 1),]$color <- "cyan"
+if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+  vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+}
+if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+  vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+}
+vattributes[which(vattributes$type == 3),]$color <- "orangered"
+vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+vattributes[which(vattributes$category == 1),]$shape <- "circle"
+vattributes[which(vattributes$category == 0),]$shape <- "square"
+
+E(g)$arrow.size <- .1
+E(g)$width <- .2
+V(g)$label.dist <- .4
+V(g)$label.cex <- .5
+V(g)$color <- vattributes$color
+V(g)$size <- log10(sqrt(vattributes$size))-2
+V(g)$size[V(g)$size < 1] <- 1
+V(g)$shape <- vattributes$shape
+pdf(paste("G:/Network Project/graphs/T10PA_", i, ".pdf", sep = ""))
+plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .3, main = paste("Top 10% aids,", i, sep = ""))
+dev.off()
+
+}
+
+#########graph based on top 3 recipients in year i, bilateral#######
+for (i in 1947:2013) {
+  yearlydata <- fulldata[fulldata$year == i,]
+  if ( nrow(yearlydata[yearlydata$dcategory == 1,]) > 0){
+  yearlydata <- yearlydata[yearlydata$dcategory == 1,]
+  yearlydata <- arrange(yearlydata, donor_abbr, desc(commitment_amount_usd_constant_sum))
+  dlist <- unique(yearlydata$donor_abbr)
+  yearlydata$top3 <- 0
+  
+  for (j in 1:length(dlist)) {
+    if (nrow(yearlydata[yearlydata$donor_abbr == dlist[j],]) < 3) {
+      yearlydata[yearlydata$donor_abbr == dlist[j],]$top3 <- 1
+    } else {
+      yearlydata[yearlydata$donor_abbr == dlist[j],]$top3[1:3] <- 1
+    }
+  }
+  selecteddata <- yearlydata[yearlydata$top3 == 1, ]
+  g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+  bipartite.mapping(g)
+  
+  vlist <- as.data.frame(V(g)$name)
+  vlist$order <- 1:nrow(vlist)
+  colnames(vlist) <- c("countryname", "order")
+  vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+  vattributes <- vattributes[order(vattributes$order), ]
+  vattributes$color <- NA
+  vattributes$size <- NA
+  vattributes$shape <- NA
+  vattributes[which(vattributes$type == 1),]$color <- "cyan"
+  if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+    vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+  }
+  if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+    vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+  }
+  vattributes[which(vattributes$type == 3),]$color <- "orangered"
+  vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+
+  E(g)$arrow.size <- .1
+  E(g)$width <- .2
+  V(g)$label.dist <- .6
+  V(g)$label.cex <- .5
+  V(g)$color <- vattributes$color
+  V(g)$size <- log10(sqrt(vattributes$size))-2
+  V(g)$size[V(g)$size < 1] <- 1
+
+  pdf(paste("G:/Network Project/graphs/ST3R_", i, ".pdf", sep = ""))
+  plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .5, main = paste("Top 3 recipients,", i," ,bilateral only",  sep = ""))
+  dev.off()
+  }
+}
+#########graph based on top 3 donors in year i#######
+for (i in 1947:2013) {
+  
+  
+  yearlydata <- fulldata[fulldata$year == i,]
+  if ( nrow(yearlydata[yearlydata$dcategory == 1,]) > 0){
+  yearlydata <- yearlydata[yearlydata$dcategory == 1,]
+  yearlydata <- arrange(yearlydata, recipient_abbr, desc(commitment_amount_usd_constant_sum))
+  rlist <- unique(yearlydata$recipient_abbr)
+  yearlydata$top3 <- 0
+  
+  for (j in 1:length(rlist)) {
+    if (nrow(yearlydata[yearlydata$recipient_abbr == rlist[j],]) < 3) {
+      yearlydata[as.character(yearlydata$recipient_abbr) == as.character(rlist[j]),]$top3 <- 1
+    } else {
+      yearlydata[as.character(yearlydata$recipient_abbr) == as.character(rlist[j]),]$top3[1:3] <- 1
+    }
+  }
+  selecteddata <- yearlydata[yearlydata$top3 == 1, ]
+  g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+  bipartite.mapping(g)
+  
+  vlist <- as.data.frame(V(g)$name)
+  vlist$order <- 1:nrow(vlist)
+  colnames(vlist) <- c("countryname", "order")
+  vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+  vattributes <- vattributes[order(vattributes$order), ]
+  vattributes$color <- NA
+  vattributes$size <- NA
+  vattributes$shape <- NA
+  vattributes[which(vattributes$type == 1),]$color <- "cyan"
+  if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+    vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+  }
+  if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+    vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+  }
+  vattributes[which(vattributes$type == 3),]$color <- "orangered"
+  vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+
+  
+  E(g)$arrow.size <- .1
+  E(g)$width <- .2
+  V(g)$label.dist <- .4
+  V(g)$label.cex <- .5
+  V(g)$color <- vattributes$color
+  V(g)$size <- log10(sqrt(vattributes$size))-2
+  V(g)$size[V(g)$size < 1] <- 1
+  pdf(paste("G:/Network Project/graphs/ST3D_", i, ".pdf", sep = ""))
+  plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .3, main = paste("Top 3 donors,", i," ,bilateral only", sep = ""))
+  dev.off()
+}
+}
+#########graph top ties in year i#######
+for (i in 1947:2013) {
+  
+  
+  yearlydata <- fulldata[fulldata$year == i,]
+  if ( nrow(yearlydata[yearlydata$dcategory == 1,]) > 10){
+  yearlydata <- yearlydata[yearlydata$dcategory == 1,]
+  yearlydata <- arrange(yearlydata, recipient_abbr, desc(commitment_amount_usd_constant_sum))
+  thresholds <- quantile(yearlydata$commitment_amount_usd_constant_sum, probs = seq(0,1,.1))
+  threshold <- thresholds[10]
+  selecteddata <- yearlydata[yearlydata$commitment_amount_usd_constant_sum > threshold, ]
+  g <- graph.data.frame(data.frame(selecteddata$donor_abbr, selecteddata$recipient_abbr), directed = TRUE)
+  bipartite.mapping(g)
+  
+  vlist <- as.data.frame(V(g)$name)
+  vlist$order <- 1:nrow(vlist)
+  colnames(vlist) <- c("countryname", "order")
+  vattributes <- merge(vlist, countries[countries$year==i, ], by.x = "countryname", by.y = "countryname")
+  vattributes <- vattributes[order(vattributes$order), ]
+  vattributes$color <- NA
+  vattributes$size <- NA
+  vattributes$shape <- NA
+  vattributes[which(vattributes$type == 1),]$color <- "cyan"
+  if (nrow(vattributes[which(vattributes$type == 2),]) > 0){
+    vattributes[which(vattributes$type == 2),]$color <- "slateblue2"
+  }
+  if (nrow(vattributes[which(vattributes$type == 9),]) > 0){
+    vattributes[which(vattributes$type == 9),]$color <- "slateblue2"
+  }
+  vattributes[which(vattributes$type == 3),]$color <- "orangered"
+  vattributes$size <- pmax(vattributes$outward, vattributes$inward)
+  
+  E(g)$arrow.size <- .1
+  E(g)$width <- .2
+  V(g)$label.dist <- .4
+  V(g)$label.cex <- .5
+  V(g)$color <- vattributes$color
+  V(g)$size <- log10(sqrt(vattributes$size))-2
+  V(g)$size[V(g)$size < 1] <- 1
+  pdf(paste("G:/Network Project/graphs/ST10PA_", i, ".pdf", sep = ""))
+  plot(g, layout= layout.fruchterman.reingold, vertex.label.cex = .3, main = paste("Top 10% aids,", i, " ,bilateral only", sep = ""))
+  dev.off()
+  }
+}
