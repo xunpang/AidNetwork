@@ -1,0 +1,257 @@
+recipient,recipient_abbr,category
+"Africa, Regional Programs, Regional Programs",Africa,0
+"Africa, South of Sahara, Regional Programs",SubSahara,0
+Angola,Angola,1
+Benin,Benin,1
+Botswana,Botswana,1
+Burkina Faso,Burkina Faso,1
+Burundi,Burundi,1
+Cameroon,Cameroon,1
+Cape Verde,Cape Verde,1
+Central African Republic,Central African Republic,1
+Chad,Chad,1
+"Congo, Democratic Republic of","Congo, Democratic Republic of",1
+"Congo, Republic of","Congo, Republic of",1
+Cote d`Ivoire,Cote d`Ivoire,1
+Djibouti,Djibouti,1
+Eritrea,Eritrea,1
+Ethiopia,Ethiopia,1
+Gabon,Gabon,1
+Gambia,Gambia,1
+Ghana,Ghana,1
+Guinea,Guinea,1
+Guinea-Bissau,Guinea-Bissau,1
+Kenya,Kenya,1
+Lesotho,Lesotho,1
+Madagascar,Madagascar,1
+Malawi,Malawi,1
+Mali,Mali,1
+Mauritania,Mauritania,1
+Mozambique,Mozambique,1
+Namibia,Namibia,1
+Niger,Niger,1
+Nigeria,Nigeria,1
+Rwanda,Rwanda,1
+Sao Tome & Principe,Sao Tome & Principe,1
+Senegal,Senegal,1
+Sierra Leone,Sierra Leone,1
+Swaziland,Swaziland,1
+Tanzania,Tanzania,1
+Uganda,Uganda,1
+Zambia,Zambia,1
+Zimbabwe,Zimbabwe,1
+no value,no value,0
+"Africa, North of Sahara, Regional Programs",North Africa,0
+Algeria,Algeria,1
+"Arab Countries, Regional Programs, Regional Programs",Arab Countries,0
+Comoros,Comoros,1
+Egypt,Egypt,1
+Equatorial Guinea,Equatorial Guinea,1
+Global,Global,1
+Liberia,Liberia,1
+Libya,Libya,1
+Mauritius,Mauritius,1
+Morocco,Morocco,1
+Seychelles,Seychelles,1
+Somalia,Somalia,1
+South Africa,South Africa,1
+Sudan,Sudan,1
+Togo,Togo,1
+Tunisia,Tunisia,1
+South Sudan,South Sudan,1
+"America, Regional Programs, Regional Programs",America,0
+Argentina,Argentina,1
+Bolivia,Bolivia,1
+Brazil,Brazil,1
+Chile,Chile,1
+Colombia,Colombia,1
+Costa Rica,Costa Rica,1
+Dominican Republic,Dominican Republic,1
+Ecuador,Ecuador,1
+Jamaica,Jamaica,1
+"Latin America, Regional Programs, Regional Programs",Latin America,0
+Mexico,Mexico,1
+Panama,Panama,1
+Paraguay,Paraguay,1
+Peru,Peru,1
+"South America, Regional Programs",South America,0
+Uruguay,Uruguay,1
+Venezuela,Venezuela,1
+United Arab Emirates,United Arab Emirates,1
+Bahrain,Bahrain,1
+Bhutan,Bhutan,1
+"Bilateral, unspecified","Bilateral, unspecified",0
+"Bilateral, unspecified Multi-Country","Bilateral, unspecified Multi-Country",0
+Iraq,Iraq,1
+Jordan,Jordan,1
+Kuwait,Kuwait,1
+Lebanon,Lebanon,1
+"Middle East, Regional Programs",Middle East,0
+Oman,Oman,1
+Palestinian Adm. Areas,Palestinian Adm. Areas,1
+Qatar,Qatar,1
+Saudi Arabia,Saudi Arabia,1
+Syria,Syria,1
+Yemen,Yemen,1
+Afghanistan,Afghanistan,1
+Armenia,Armenia,1
+"Asia, Regional Programs, Regional Programs",Asia,0
+Azerbaijan,Azerbaijan,1
+Bangladesh,Bangladesh,1
+Cambodia,Cambodia,1
+China,China,1
+Cook Islands,Cook Islands,1
+"Far East Asia, Regional Programs",Far East Asia,0
+Fiji,Fiji,1
+Georgia,Georgia,1
+"Hong Kong, China","Hong Kong, China",1
+India,India,1
+Indonesia,Indonesia,1
+Kazakhstan,Kazakhstan,1
+Kiribati,Kiribati,1
+Korea,Korea,1
+Kyrgyz Republic,Kyrgyz Republic,1
+Laos,Laos,1
+Malaysia,Malaysia,1
+Maldives,Maldives,1
+Marshall Islands,Marshall Islands,1
+"Micronesia, Federated States of","Micronesia, Federated States of",1
+Mongolia,Mongolia,1
+Myanmar,Myanmar,1
+Nauru,Nauru,1
+Nepal,Nepal,1
+"Oceania, Regional Programs",Oceania,0
+Pakistan,Pakistan,1
+Palau,Palau,1
+Papua New Guinea,Papua New Guinea,1
+Philippines,Philippines,1
+Samoa,Samoa,1
+Singapore,Singapore,1
+Solomon Islands,Solomon Islands,1
+"South & Central Asia, Regional Programs",South & Central Asia,0
+Sri Lanka,Sri Lanka,1
+Taiwan,Taiwan,1
+Tajikistan,Tajikistan,1
+Thailand,Thailand,1
+Timor-Leste,Timor-Leste,1
+Tonga,Tonga,1
+Turkmenistan,Turkmenistan,1
+Tuvalu,Tuvalu,1
+Uzbekistan,Uzbekistan,1
+Vanuatu,Vanuatu,1
+Viet Nam,Viet Nam,1
+Albania,Albania,1
+Anguilla,Anguilla,1
+Antigua & Barbuda,Antigua & Barbuda,1
+Barbados,Barbados,1
+Belize,Belize,1
+Bosnia-Herzegovina,Bosnia-Herzegovina,1
+Brunei,Brunei,1
+Croatia,Croatia,1
+Cuba,Cuba,1
+Cyprus,Cyprus,1
+Czech Republic,Czech Republic,1
+Dominica,Dominica,1
+El Salvador,El Salvador,1
+"Europe, Regional Programs",Europe,0
+"Ex-Yugoslavian States, Unspecified","Ex-Yugoslavian States, Unspecified",1
+French Polynesia,French Polynesia,1
+Grenada,Grenada,1
+Guatemala,Guatemala,1
+Guyana,Guyana,1
+Haiti,Haiti,1
+Honduras,Honduras,1
+Hungary,Hungary,1
+Iran,Iran,1
+Israel,Israel,1
+"Korea, Democratic Republic of","Korea, Democratic Republic of",1
+Kosovo,Kosovo,1
+Macao,Macao,1
+"Macedonia, FYR","Macedonia, FYR",1
+Malta,Malta,1
+Moldova,Moldova,1
+Montenegro,Montenegro,1
+Montserrat,Montserrat,1
+New Caledonia,New Caledonia,1
+Nicaragua,Nicaragua,1
+Niue,Niue,1
+"North & Central America, regional, Regional Programs",North & Central America,0
+Northern Marianas,Northern Marianas,1
+Poland,Poland,1
+Russia,Russia,1
+Serbia,Serbia,1
+Slovenia,Slovenia,1
+"South Asia, Regional Programs, Regional Programs",South Asia,0
+St. Helena,St. Helena,1
+St. Kitts & Nevis,St. Kitts & Nevis,1
+St. Lucia,St. Lucia,1
+St.Vincent & Grenadines,St.Vincent & Grenadines,1
+Suriname,Suriname,1
+Tokelau,Tokelau,1
+Trinidad & Tobago,Trinidad & Tobago,1
+Turkey,Turkey,1
+Turks and Caicos Islands,Turks and Caicos Islands,1
+Ukraine,Ukraine,1
+Wallis & Futuna,Wallis & Futuna,1
+"West Indies, Regional Programs, Regional Programs",West Indies,0
+Belarus,Belarus,1
+Bulgaria,Bulgaria,1
+"Central Asia, Regional Programs, Regional Programs",Central Asia,0
+Estonia,Estonia,1
+Latvia,Latvia,1
+Lithuania,Lithuania,1
+Romania,Romania,1
+Slovak Republic,Slovak Republic,1
+Aruba,Aruba,1
+Netherlands Antilles,Netherlands Antilles,1
+Bahamas,Bahamas,1
+France,France,1
+French Guiana,French Guiana,1
+Japan,Japan,1
+"Africa, South of Sahara Multi-Country","Africa, Sub-Sahara Multi-Country",0
+Bermuda,Bermuda,1
+Cayman Islands,Cayman Islands,1
+Guadeloupe,Guadeloupe,1
+Martinique,Martinique,1
+Virgin Islands (UK),Virgin Islands (UK),1
+"North & Central America, Regional Programs",North & Central America,0
+United States,United States,1
+Yugoslavia,Yugoslavia,1
+"Mediterranean, Regional Programs, Regional Programs",Mediterranean,0
+Serbia and Montenegro,Serbia and Montenegro,1
+Soviet Union,Soviet Union,1
+Falkland Islands,Falkland Islands,1
+Mayotte,Mayotte,1
+Reunion,Reunion,1
+St. Pierre & Miquelon,St. Pierre & Miquelon,1
+Gibraltar,Gibraltar,1
+MADCT Unspecified,MADCT Unspecified,0
+Canada,Canada,1
+European Commission,European Commission,0
+"Africa, Regional Programs Multi-Country","Africa, Multi-Country",0
+"Africa, South of Sahara, Regional Programs Multi-Country","Africa, Sahara, Regional Multi-Country",0
+Spain,Spain,1
+Greece,Greece,1
+Iceland,Iceland,1
+Ireland,Ireland,1
+Portugal,Portugal,1
+"Asia, Regional Programs Multi-Country","Asia, Multi-Country",0
+Australia,Australia,1
+Belgium,Belgium,1
+Denmark,Denmark,1
+Netherlands,Netherlands,1
+New Zealand,New Zealand,1
+Norway,Norway,1
+United Kingdom,United Kingdom,1
+Austria,Austria,1
+Finland,Finland,1
+Germany,Germany,1
+Italy,Italy,1
+Liechtenstein,Liechtenstein,1
+Switzerland,Switzerland,1
+Luxembourg,Luxembourg,1
+Sweden,Sweden,1
+"Africa, regional","Africa, regional",0
+"Middle East, regional","Middle East, regional",0
+"Southeast Asia, regional","Southeast Asia, regional",0
+"Europe, regional","Europe, regional",0
