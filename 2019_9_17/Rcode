@@ -1,0 +1,153 @@
+library(igraph)
+library(network)
+library(reshape2)
+library(reshape)
+library(dplyr)
+library(ape)
+
+
+
+fulldata <- read.csv("~/AidDataCoreDonorRecipientYear_ResearchRelease_Level1_v3.1.csv")
+rlist <- read.csv("~/abbreviation_recipient.csv")
+dlist <- read.csv("~/abbreviation_donor.csv")
+fulldata <- merge(fulldata, rlist, by.x = "recipient", by.y = "recipient", all.x = TRUE)
+fulldata <- merge(fulldata, dlist, by.x = "donor", by.y = "donor", all.x = TRUE)
+fulldata <- fulldata[fulldata$category == 1,]
+
+fulldata <- fulldata[fulldata$dcategory == 1,] #####delete multilateral donors
+
+
+########weighted network#############################
+########get network#########
+matrices <- list()
+recipients <- list()
+donors <- list()
+for (i in 2000:2013) {
+  yearlydata <- fulldata[fulldata$year == i,]
+  yearlymtx <- acast(yearlydata, donor_abbr~recipient_abbr, value.var = "commitment_amount_usd_constant_sum")
+  yearlymtx[which(is.na(yearlymtx))] <- 0
+  yearlydonors <- rowSums(yearlymtx)
+  yearlyrecipients <- colSums(yearlymtx)
+  matrices[[i-1999]] <- yearlymtx
+}
+tiemat <- matrices
+adjmat <- list()
+dg <- list()
+adjmat.s <- list()
+for (j in 1:14) {
+  n <- nrow(tiemat[[j]]) + ncol(tiemat[[j]])
+  allnodes <- c(rownames(tiemat[[j]]), colnames(tiemat[[j]]))
+  allnodes2 <- c(colnames(tiemat[[j]]), rownames(tiemat[[j]]))
+  
+  adjmat[[j]] <- matrix(data = NA, nrow = n, ncol = n)
+  colnames(adjmat[[j]]) <- allnodes2
+  rownames(adjmat[[j]]) <- allnodes
+  adjmat[[j]][1:nrow(tiemat[[j]]), 1:ncol(tiemat[[j]])] <- tiemat[[j]]
+  adjmat[[j]][(nrow(tiemat[[j]])+1):nrow(adjmat[[j]]),] <- 0
+  adjmat[[j]][,(ncol(tiemat[[j]])+1):ncol(adjmat[[j]])] <- 0
+  corder <- order(as.vector(colnames(adjmat[[j]])))
+  rorder <- order(as.vector(rownames(adjmat[[j]])))
+  adjmat[[j]] <- adjmat[[j]][rorder,]
+  adjmat[[j]] <- adjmat[[j]][,corder]
+  adjmat[[j]] <- adjmat[[j]][!duplicated(rownames(adjmat[[j]])), !duplicated(colnames(adjmat[[j]]))]
+  dg[[j]] <- graph.adjacency(adjmatrix = adjmat[[j]], "undirected", weighted = TRUE)
+}
+
+######community detection########
+for (j in 1:14) {
+  graf <- dg[[j]]
+  cd1 <- fastgreedy.community(graf)
+  E(graf)$width <- .05
+  V(graf)$label.dist <- .2
+  V(graf)$label.cex <- .5
+  V(graf)$size <- 2
+  pdf(paste("~/DendroPlot2_", j, ".pdf", sep = ""))
+  par(cex = 0.5)
+  dendPlot(cd1, mode = "phylo", main = paste("Dendrogram for year", 1999+j))
+  dev.off()
+}
+
+
+########community matrix########
+for (j in 1:14) {
+  graf <- dg[[j]]
+  cd1 <- fastgreedy.community(graf)
+  memberlist <- data.frame(name = cd1$names, membership = cd1$membership)
+  memberlist <- memberlist[order(memberlist$membership),]
+  membermat <- matrix(0, nrow = nrow(memberlist), ncol = nrow(memberlist))
+  rownames(membermat) <- memberlist$name
+  colnames(membermat) <- memberlist$name
+  for (k in 1:nrow(membermat)) {
+    for (i in 1:ncol(membermat)) {
+      if (memberlist$membership[i] == memberlist$membership[k]) 
+      {membermat[k,i] <- 1} 
+      if (i == k) {membermat[k,i] <- 99}
+    }
+  }
+  membermat[membermat == 99]<- NA
+  write.csv(membermat, paste(1999 + j, ".csv"))
+}
+
+########top 3 donor network########
+########get network#########
+matrices <- list()
+recipients <- list()
+donors <- list()
+for (i in 2000:2013) {
+  yearlydata <- fulldata[fulldata$year == i,]
+  yearlymtx <- acast(yearlydata, donor_abbr~recipient_abbr, value.var = "commitment_amount_usd_constant_sum")
+  yearlymtx[which(is.na(yearlymtx))] <- 0
+  yearlydonors <- rowSums(yearlymtx)
+  yearlyrecipients <- colSums(yearlymtx)
+  matrices[[i-1999]] <- yearlymtx
+}
+tiemat <- matrices
+adjmat <- list()
+top3g <- list()
+adjmat.s <- list()
+
+
+for (j in 1:14) {
+  for (k in 1:ncol(tiemat[[j]])) {
+    onecol <- tiemat[[j]][,k]
+    onecol <- sort(onecol, decreasing = TRUE)
+    threshold <- onecol[3]
+    tiemat[[j]][which(tiemat[[j]][,k] < onecol[3]),k] <- 0
+  }
+  tiemat[[j]][which(tiemat[[j]] != 0)] <- 1
+  n <- nrow(tiemat[[j]]) + ncol(tiemat[[j]])
+  allnodes <- c(rownames(tiemat[[j]]), colnames(tiemat[[j]]))
+  allnodes2 <- c(colnames(tiemat[[j]]), rownames(tiemat[[j]]))
+  
+  adjmat[[j]] <- matrix(data = NA, nrow = n, ncol = n)
+  colnames(adjmat[[j]]) <- allnodes2
+  rownames(adjmat[[j]]) <- allnodes
+  adjmat[[j]][1:nrow(tiemat[[j]]), 1:ncol(tiemat[[j]])] <- tiemat[[j]]
+  adjmat[[j]][(nrow(tiemat[[j]])+1):nrow(adjmat[[j]]),] <- 0
+  adjmat[[j]][,(ncol(tiemat[[j]])+1):ncol(adjmat[[j]])] <- 0
+  corder <- order(as.vector(colnames(adjmat[[j]])))
+  rorder <- order(as.vector(rownames(adjmat[[j]])))
+  adjmat[[j]] <- adjmat[[j]][rorder,]
+  adjmat[[j]] <- adjmat[[j]][,corder]
+  adjmat[[j]] <- adjmat[[j]][!duplicated(rownames(adjmat[[j]])), !duplicated(colnames(adjmat[[j]]))]
+  top3g[[j]] <- graph.adjacency(adjmatrix = adjmat[[j]], "undirected")
+  top3g[[j]] <- induced_subgraph(top3g[[j]], which(degree(top3g[[j]]) != 0))
+}
+
+#########node attributes#######
+
+##########get panel data#########
+nodelevel <- data.frame(countryname = NA, year = NA, degree=NA, closenessvalue =NA, eigen = NA, hubs = NA, authority = NA)
+structural <- data.frame(year = NA, ctrdegree = NA, ctrclose =NA, ctreigen = NA)
+for (i in 1:14) {
+  yearlynode <- data.frame(countryname = V(top3g[[i]])$name, year = i + 1999, degree = degree(top3g[[i]], mode = "out"),
+                           closenessvalue = closeness(top3g[[i]], mode = "out"), eigen = eigen_centrality(top3g[[i]])$vector,
+                           hubs = hub.score(top3g[[i]])$vector, authority = authority_score(top3g[[i]])$vector)
+  nodelevel <- rbind(nodelevel, yearlynode)
+  yearlystructural <- c(i+1999, centr_degree(top3g[[i]], mode = "out")$centralization,
+                        centralization.closeness(top3g[[i]], mode = "out")$centralization, 
+                        centr_eigen(top3g[[i]], directed = T, normalized = T)$centralization)
+  structural <- rbind(structural, yearlystructural)
+}
+nodelevel <- nodelevel[-1,]
+structural <- structural[-1,]
