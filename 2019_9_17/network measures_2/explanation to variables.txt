@@ -1,0 +1,17 @@
+STRUCTURAL VARIABLES
+ctrdegree: centralization based on degree	
+ctrclose: centralization based on closeness
+ctreigen: centralization based on eigenvector
+
+Centralization is a general method for calculating a graph-level centrality score based on node-level centrality measure. 
+The formula for this is
+C(G)=sum( max(c(w), w) - c(v),v),
+where c(v) is the centrality of vertex v.
+
+
+NODE-LEVEL VARIABLES
+degree: centrality_degree
+closenessvalue: centrality_closeness
+eigen: centrality_eigenvector
+hubs: The hub scores of the vertices are defined as the principal eigenvector of A*t(A), where A is the adjacency matrix of the graph.
+authority: The authority scores of the vertices are defined as the principal eigenvector of t(A)*A, where A is the adjacency matrix of the graph.
