@@ -130,7 +130,7 @@ for (j in 1:14) {
   adjmat[[j]] <- adjmat[[j]][rorder,]
   adjmat[[j]] <- adjmat[[j]][,corder]
   adjmat[[j]] <- adjmat[[j]][!duplicated(rownames(adjmat[[j]])), !duplicated(colnames(adjmat[[j]]))]
-  top3g[[j]] <- graph.adjacency(adjmatrix = adjmat[[j]], "undirected")
+  top3g[[j]] <- graph.adjacency(adjmatrix = adjmat[[j]], "directed")
   top3g[[j]] <- induced_subgraph(top3g[[j]], which(degree(top3g[[j]]) != 0))
 }
 
