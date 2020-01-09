@@ -1,0 +1,54 @@
+library(polnet)
+library(reshape2)
+alldata <- read.csv("~aiddata2.csv")
+aiddata <- alldata[alldata$rcategory==1,]
+aiddata <- aiddata[aiddata$dcategory==1,]
+aiddata$commitment_amount_usd_constant_sum <- as.numeric(as.character(aiddata$commitment_amount_usd_constant_sum))
+aiddata <- aiddata[!is.na(aiddata$commitment_amount_usd_constant_sum),]
+
+
+
+threshold <- c(5000000, 10000000, 20000000, 50000000)
+
+for (q in 1:4) {
+  
+
+sigdata <- aiddata[aiddata$commitment_amount_usd_constant_sum > threshold[q],]
+allties <- acast(sigdata, dname~rname~year, length)
+
+
+
+#######bilcm#######
+allbilcm <- list()
+communityrate <- list()
+for (j in 2:10) {
+  
+
+  for (i in 1:9) {
+    mtx <- allties[,,i]+allties[,,i+1]+allties[,,i+2]+allties[,,i+3]+allties[,,i+4]+allties[,,i+5]
+    mtx <- mtx[rowSums(mtx) != 0,]
+    mtx <- mtx[,colSums(mtx) != 0]
+    testdata <- biLCM(edges = mtx, group1.id = NULL, 
+                      group2.id = NULL, count.id = NULL, k = j, tolerance = 1e-6, max.iter = 500)
+    allbilcm[[i]] <- testdata
+  }
+  
+  communitydata <- rep(NA, j+2)
+  for (i in 1:9) {
+    oneyear <- rbind(allbilcm[[i]]$alpha, allbilcm[[i]]$beta)
+    oneyear <- cbind(rep(1999+i+2, nrow(oneyear)), c(rep(1, nrow(allbilcm[[i]]$alpha)), rep(0, nrow(allbilcm[[i]]$beta))), oneyear)
+    rownames(oneyear) <- c(rownames(allbilcm[[i]]$alpha), rownames(allbilcm[[i]]$beta))
+    communitydata <- rbind(communitydata, oneyear)
+  }
+  communitydata <- as.matrix(communitydata[-1,])
+  communitydata2 <- communitydata
+  communitydata2[,3:ncol(communitydata)] <- communitydata[,3:ncol(communitydata)]/rowSums(communitydata[,3:ncol(communitydata)])
+  communitydata[communitydata2 < 0.01] <- 0
+  communitydata2 <- round(communitydata2, digits = 2)
+  
+  colnames(communitydata) <- c("year", "type", 1:j)
+  colnames(communitydata2) <- c("year", "type", 1:j)
+  write.csv(communitydata, paste("~", j, "above", threshold[q], "Obicommunities2.csv"))
+  write.csv(communitydata2, paste("~", j,"above", threshold[q], "Obicommunities2.prop.csv"))
+}
+} 
