@@ -1,0 +1,53 @@
+library(igraph)
+library(reshape2)
+alldata <- read.csv("/Users/thuirlab/desktop/network/data/aiddata2.csv")
+aiddata <- alldata[alldata$rcategory==1,]
+aiddata <- aiddata[aiddata$dcategory==1,]
+names(aiddata)[5] <- "amount"
+aiddata$amount <- as.numeric(as.character(aiddata$amount))
+aiddata <- aiddata[!is.na(aiddata$amount),]
+threshold <- c(5000000, 10000000, 20000000, 50000000)
+
+
+sigdata <- aiddata[aiddata$amount > threshold[q],]
+allcountries <- c(unique(as.character(sigdata$dname)),unique(as.character(sigdata$rname)))
+countrynames <- table(allcountries)
+repeatedcountries <- names(countrynames[countrynames==2])
+sigdata$rname <- as.character(sigdata$rname)
+for (w in 1:length(repeatedcountries)) {
+  sigdata$rname[sigdata$rname == repeatedcountries[w]] <- paste(repeatedcountries[w],".r", sep = "")
+  
+}
+
+weightedties <- acast(sigdata, dname~rname~year, value.var ="amount", sum)
+
+
+######weighted network#######
+for (i in 1:10) {
+  graphdata <- weightedties[,,i]+weightedties[,,i+1] + weightedties[,,i+2]+weightedties[,,i+3]+weightedties[,,i+4]
+  dg[[i]] <- graph_from_incidence_matrix(graphdata, directed = F, weighted = TRUE)
+}
+is.bipartite(dg[[1]])
+
+
+
+
+########community matrix########
+for (j in 1:10) {
+  graf <- dg[[j]]
+  cd1 <- fastgreedy.community(graf)
+  memberlist <- data.frame(name = cd1$names, membership = cd1$membership)
+  memberlist <- memberlist[order(memberlist$membership),]
+  membermat <- matrix(0, nrow = nrow(memberlist), ncol = nrow(memberlist))
+  rownames(membermat) <- memberlist$name
+  colnames(membermat) <- memberlist$name
+  for (k in 1:nrow(membermat)) {
+    for (i in 1:ncol(membermat)) {
+      if (memberlist$membership[i] == memberlist$membership[k]) 
+      {membermat[k,i] <- 1} 
+      if (i == k) {membermat[k,i] <- 99}
+    }
+  }
+  membermat[membermat == 99]<- NA
+  write.csv(membermat, paste("/Users/thuirlab/desktop/network/descriptive/",2001 + j, ".csv"))
+}
