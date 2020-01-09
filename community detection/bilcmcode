@@ -8,24 +8,18 @@ aiddata <- aiddata[!is.na(aiddata$commitment_amount_usd_constant_sum),]
 
 
 
-threshold <- c(5000000, 10000000, 20000000, 50000000)
+threshold <- c(5000000, 10000000, 20000000, 50000000) 。 #####set of thresholds to select the aid counted in the network
 
+
+####get the bilcm object
 for (q in 1:4) {
-  
-
 sigdata <- aiddata[aiddata$commitment_amount_usd_constant_sum > threshold[q],]
 allties <- acast(sigdata, dname~rname~year, length)
-
-
-
-#######bilcm#######
 allbilcm <- list()
 communityrate <- list()
 for (j in 2:10) {
-  
-
-  for (i in 1:9) {
-    mtx <- allties[,,i]+allties[,,i+1]+allties[,,i+2]+allties[,,i+3]+allties[,,i+4]+allties[,,i+5]
+    for (i in 1:9) {
+    mtx <- allties[,,i]+allties[,,i+1]+allties[,,i+2]+allties[,,i+3]+allties[,,i+4]+allties[,,i+5] ####multiyear average
     mtx <- mtx[rowSums(mtx) != 0,]
     mtx <- mtx[,colSums(mtx) != 0]
     testdata <- biLCM(edges = mtx, group1.id = NULL, 
