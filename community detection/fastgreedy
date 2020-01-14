@@ -51,3 +51,18 @@ for (j in 1:10) {
   membermat[membermat == 99]<- NA
   write.csv(membermat, paste("/Users/thuirlab/desktop/network/descriptive/",2001 + j, ".csv"))
 }
+
+
+##########community detection##############
+for (j in 1:10) {
+  graf <- dg[[j]]
+  cd1 <- fastgreedy.community(graf)
+  E(graf)$width <- .05
+  V(graf)$label.dist <- .2
+  V(graf)$label.cex <- .5
+  V(graf)$size <- 2
+  pdf(paste("G:/Network Project/graphs/DendroPlot_", j, ".pdf", sep = ""))
+  par(cex = 0.5)
+  dendPlot(cd1, mode = "phylo", main = paste("Dendrogram for year", 1999+j))
+  dev.off()
+}
